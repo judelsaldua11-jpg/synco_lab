@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inventory Management{% endblock %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="admin-container">
+
+        <!-- Page Header -->
+        <div class="admin-header-center">
+            <div>
+                <h1 class="admin-title" style="font-size: 48px; margin-bottom: 8px;">Inventory Management</h1>
+                <p class="admin-subtitle" style="font-size: 18px;">Manage stock across all branches.</p>
+            </div>
+            <a href="#" class="btn btn--green" style="height: 48px; font-size: 16px; padding: 0 24px;">
+                + ADD STOCK
+            </a>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="inventory-filter-card">
+            <form method="GET" action="" class="inventory-form">
+                <div class="inventory-search-wrapper">
+                    <input type="text" name="search" placeholder="Search by product, SKU, or serial..." class="inventory-input">
+                </div>
+                
+                <select name="status" class="inventory-select">
+                    <option value="">All Statuses</option>
+                    {% for option in statusOptions %}
+                        <option value="{{ option.key }}">{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+
+                <select name="branch" class="inventory-select">
+                    <option value="0">All Branches</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch.id }}">{{ branch.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn btn--green btn-inventory">FILTER</button>
+                <a href="{{ path('admin_inventory') }}" class="btn btn--outline btn-inventory">CLEAR</a>
+            </form>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="admin-table inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Serial Number</th>
+                            <th>Branch</th>
+                            <th class="center">Status</th>
+                            <th class="center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventoryItems %}
+                            <tr>
+                                <td>
+                                    <strong>{{ item.product_name }}</strong>
+                                    <br>
+                                    <span class="text-muted" style="font-size: 12px;">{{ item.sku }}</span>
+                                </td>
+                                <td class="monospace">
+                                    {{ item.serial_number }}
+                                </td>
+                                <td>
+                                    {{ item.branch_name }}
+                                </td>
+                                <td class="center">
+                                    <span class="status-pill-square status-inv-{{ item.status_key }}">
+                                        {{ item.status_label }}
+                                    </span>
+                                </td>
+                                <td class="center">
+                                    <form method="POST" action="#" class="inventory-action-form">
+                                        <select name="status" class="inventory-small-select">
+                                            {% for option in statusOptions %}
+                                                <option value="{{ option.key }}" {% if item.status_key == option.key %}selected{% endif %}>
+                                                    {{ option.label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn--green btn-inventory-action">UPDATE</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <p class="text-muted" style="margin-top: 12px; font-size: 14px;">
+            Total items: {{ totalItems }}
+        </p>
+
+        <p style="margin-top: 32px;">
+            <a href="{{ path('admin_dashboard') }}" class="text-green text-bold" style="text-decoration: none;">&larr; Back to Dashboard</a>
+        </p>
+        
+    </div>
+</div>
+{% endblock %}

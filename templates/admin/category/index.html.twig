@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Categories{% endblock %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="admin-container">
+
+        <!-- Page Header -->
+        <div class="admin-header-center">
+            <div>
+                <h1 class="admin-title-lg">Categories</h1>
+                <p class="admin-subtitle-lg-text">Manage product categories and subcategories.</p>
+            </div>
+            <!-- FIXED: Now links to the Add Category route -->
+            <a href="{{ path('admin_categories_add') }}" class="btn btn--green btn-header-xl">
+                + ADD CATEGORY
+            </a>
+        </div>
+
+        <!-- Categories Table -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="admin-table category-table table-min-600">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Slug</th>
+                            <th>Parent</th>
+                            <th class="center">Products</th>
+                            <th class="center">Status</th>
+                            <th class="center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                            <tr>
+                                <!-- Name -->
+                                <td>
+                                    <strong>{{ category.name }}</strong>
+                                </td>
+
+                                <!-- Slug -->
+                                <td class="text-muted text-sm-14">
+                                    {{ category.slug }}
+                                </td>
+
+                                <!-- Parent Category -->
+                                <td class="text-muted text-sm-14">
+                                    {% if category.parent %}
+                                        {{ category.parent }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <!-- Product Count -->
+                                <td class="center text-bold">
+                                    {{ category.product_count }}
+                                </td>
+
+                                <!-- Status -->
+                                <td class="center">
+                                    <span class="status-badge {{ category.is_active ? 'active' : 'inactive' }}">
+                                        {{ category.is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="center">
+                                    <div class="action-buttons">
+                                        <!-- FIXED: Now links to the Edit Category route -->
+                                        <a href="{{ path('admin_categories_edit', {'id': category.id}) }}" class="btn-edit">Edit</a>
+                                        
+                                        <!-- Delete stays # because it's a destructive action that will eventually need a POST request, not a GET link -->
+                                        <a href="#" class="btn-delete" onclick="return confirm('Are you sure you want to delete this category? This will also remove it from all products.');">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <p class="admin-total-text">
+            Total categories: {{ totalCategories }}
+        </p>
+
+        <p class="mt-32">
+            <a href="{{ path('admin_dashboard') }}" class="text-green text-bold no-underline">&larr; Back to Dashboard</a>
+        </p>
+        
+    </div>
+</div>
+{% endblock %}

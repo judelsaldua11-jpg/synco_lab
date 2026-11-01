@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Service Bookings{% endblock %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="admin-container">
+
+        <!-- PAGE HEADER -->
+        <div class="admin-header">
+            <div>
+                <a href="{{ path('admin_dashboard') }}" class="text-muted" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">&larr; Back to Dashboard</a>
+                <h1 class="admin-title">Service Bookings</h1>
+                <p class="admin-subtitle">Manage workshop appointments, fit sessions, and repair jobs.</p>
+            </div>
+            <div class="admin-header-actions">
+                <a href="{{ path('admin_dashboard') }}" class="btn btn--outline btn--small btn-header-action">📊 Dashboard</a>
+                <a href="{{ path('admin_orders') }}" class="btn btn--outline btn--small btn-header-action">🛒 Orders</a>
+            </div>
+        </div>
+
+        <!-- FILTER TABS -->
+        <div class="filter-tabs" style="margin-bottom: 24px;">
+            <a href="#" class="btn btn--small btn--green btn-filter">All Bookings</a>
+            <a href="#" class="btn btn--small btn--outline btn-filter">Pending Review</a>
+            <a href="#" class="btn btn--small btn--outline btn-filter">Confirmed</a>
+            <a href="#" class="btn btn--small btn--outline btn-filter">In Progress (Workshop)</a>
+            <a href="#" class="btn btn--small btn--outline btn-filter">Completed</a>
+            <a href="#" class="btn btn--small btn--outline btn-filter">Cancelled</a>
+        </div>
+
+        <!-- BOOKING LIST -->
+        <div class="booking-list">
+            {% for booking in bookings %}
+                <div id="booking-{{ booking.id }}" class="booking-card">
+
+                    <!-- LEFT COLUMN -->
+                    <div class="booking-info-col">
+                        <div class="booking-header-row">
+                            <h3 class="booking-title">{{ booking.customer_name }}</h3>
+                            
+                            <span class="booking-status-pill booking-status-{{ booking.status_key }}">
+                                {{ booking.status_label }}
+                            </span>
+
+                            {% if booking.is_member %}
+                                <span class="pill-member">💎 Active Member</span>
+                            {% endif %}
+                        </div>
+
+                        <p class="text-bold" style="font-size: 15px; margin-bottom: 4px; color: var(--dark);">
+                            🛠️ {{ booking.service_label }}
+                        </p>
+                        <p class="text-muted" style="font-size: 13px; margin-bottom: 4px;">
+                            📅 <strong>Scheduled:</strong> {{ booking.scheduled_date }}
+                        </p>
+                        <p class="text-muted" style="font-size: 13px; margin-bottom: 4px;">
+                            📍 <strong>Branch:</strong> {{ booking.branch_name }} | 
+                            ✉️ {{ booking.customer_email }}
+                            {% if booking.customer_phone %} | 📞 {{ booking.customer_phone }}{% endif %}
+                        </p>
+
+                        {% if booking.notes %}
+                            <div class="note-box">
+                                <strong>Customer Notes:</strong> {{ booking.notes }}
+                            </div>
+                        {% endif %}
+
+                        {% if booking.is_member %}
+                            <!-- Benefit mini-list -->
+                            <div class="panel-member" style="margin-top: 14px;">
+                                <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #2e7d32; margin: 0 0 8px;">
+                                    💎 Benefits This Cycle (since {{ booking.cycle_start }})
+                                </p>
+                                <div class="benefit-list">
+                                    {% for benefit in booking.benefits %}
+                                        <div class="benefit-row">
+                                            {% if benefit.type == 'unlimited' %}
+                                                <span class="text-green">✓</span>
+                                                <span>{{ benefit.label }}</span>
+                                                <span class="text-muted">— Unlimited</span>
+                                            {% elseif benefit.type == 'used' %}
+                                                <span style="color: #9e9e9e;">☑</span>
+                                                <span style="color: #9e9e9e;">{{ benefit.label }}</span>
+                                                <span class="text-muted">— Used {{ benefit.date }}</span>
+                                            {% else %}
+                                                <span class="text-green">✓</span>
+                                                <span>{{ benefit.label }}</span>
+                                                <span class="text-green text-bold" style="font-size: 11px;">— Available</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="booking-actions-col">
+
+                        <!-- Update Status -->
+                        <div class="panel-gray">
+                            <span class="text-bold" style="display: block; font-size: 12px; text-transform: uppercase; color: var(--gray-dark); margin-bottom: 8px;">
+                                Change Service Status
+                            </span>
+                            <form method="POST" action="#" class="flex-items-center">
+                                <select name="status" class="input-form" style="flex: 1;">
+                                    <option value="pending" {% if booking.status_key == 'pending' %}selected{% endif %}>Pending Review</option>
+                                    <option value="confirmed" {% if booking.status_key == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                    <option value="in_progress" {% if booking.status_key == 'in_progress' %}selected{% endif %}>In Workshop</option>
+                                    <option value="completed" {% if booking.status_key == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="cancelled" {% if booking.status_key == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                                <button type="submit" class="btn btn--green btn--small btn-action">Update</button>
+                            </form>
+                        </div>
+
+                        <!-- Claim Benefit -->
+                        {% if booking.is_member and booking.status_key != 'cancelled' and booking.available_benefits is not empty %}
+                            <div class="panel-member">
+                                <span class="text-bold" style="display: block; font-size: 12px; text-transform: uppercase; color: #2e7d32; margin-bottom: 8px;">
+                                    💎 Claim Membership Benefit
+                                </span>
+                                <form method="POST" action="#" style="display: flex; flex-direction: column; gap: 8px;">
+                                    <select name="benefit_type" class="input-form">
+                                        <option value="">— Select benefit —</option>
+                                        {% for key, label in booking.available_benefits %}
+                                            <option value="{{ key }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="text" name="claim_note" maxlength="255" placeholder="Optional note (e.g. serial #, remarks)" class="input-sm">
+                                    <button type="submit" class="btn btn--green btn--small btn-action" onclick="return confirm('Mark this benefit as claimed for {{ booking.customer_name }}?');">
+                                        ✓ Mark as Claimed
+                                    </button>
+                                </form>
+                            </div>
+
+                        {% elseif booking.is_member and booking.status_key != 'cancelled' %}
+                            <div class="alert-warning">
+                                ⓘ All cycle-limited benefits already claimed. Only unlimited benefits remain.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+
+        <p style="margin-top: 32px;">
+            <a href="{{ path('admin_dashboard') }}" class="text-green text-bold" style="text-decoration: none;">&larr; Back to Dashboard</a>
+        </p>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="admin-container">
+
+        <!-- Page Header -->
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">👥 User Management</h1>
+                <p class="admin-subtitle">Manage all users and their roles.</p>
+            </div>
+            <div class="admin-header-actions">
+                <span class="text-muted" style="font-size: 14px;">Total users: {{ totalUsers }}</span>
+            </div>
+        </div>
+
+        <!-- Role Filter -->
+        <div class="filter-tabs" style="margin-bottom: 24px;">
+            <a href="#" class="btn btn--small btn--green btn-header-action">All</a>
+            <a href="#" class="btn btn--small btn--outline btn-header-action">👤 Customers</a>
+            <a href="#" class="btn btn--small btn--outline btn-header-action">🏪 Branch Managers</a>
+            <a href="#" class="btn btn--small btn--outline btn-header-action">⭐ HQ Admins</a>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Membership</th>
+                            <th class="center">Status</th>
+                            <th class="center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                            <tr>
+                                <!-- User Info -->
+                                <td>
+                                    <div class="user-info-cell">
+                                        <span class="user-name">{{ user.name }}</span>
+                                        <span class="user-email">{{ user.email }}</span>
+                                        {% if user.phone %}
+                                            <span class="user-phone">📞 {{ user.phone }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <!-- Role Badge -->
+                                <td>
+                                    <span class="role-badge {{ user.role }}">
+                                        {% if user.role == 'customer' %}Customer
+                                        {% elseif user.role == 'branch_manager' %}Branch Manager
+                                        {% elseif user.role == 'hq_admin' %}HQ Admin
+                                        {% endif %}
+                                    </span>
+                                </td>
+
+                                <!-- Membership Status -->
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                                        <span class="status-badge {{ user.is_member ? 'member' : 'non-member' }}">
+                                            {% if user.is_member %}✅ Active Member{% else %}❌ Non-Member{% endif %}
+                                        </span>
+                                        {% if user.is_member %}
+                                            <span class="text-muted" style="font-size: 12px;">Expires: {{ user.expiry }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <!-- Active Status -->
+                                <td class="center">
+                                    <span class="status-badge {{ user.is_active ? 'active' : 'inactive' }}">
+                                        {{ user.is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="center">
+                                    <div class="user-table-actions">
+                                        <form method="POST" action="#" class="user-action-form">
+                                            <select name="role" class="role-select">
+                                                <option value="customer" {% if user.role == 'customer' %}selected{% endif %}>Customer</option>
+                                                <option value="branch_manager" {% if user.role == 'branch_manager' %}selected{% endif %}>Manager</option>
+                                                <option value="hq_admin" {% if user.role == 'hq_admin' %}selected{% endif %}>HQ Admin</option>
+                                            </select>
+                                            <button type="submit" class="btn btn--green btn--small btn-user-action">Update</button>
+                                        </form>
+                                        <form method="POST" action="#" class="user-action-form">
+                                            <button type="submit" class="btn btn--small {{ user.is_active ? 'btn--dark' : 'btn--green' }} btn-user-action">
+                                                {{ user.is_active ? 'Deactivate' : 'Activate' }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Membership Payment Log -->
+        <div style="margin-top: 40px;">
+            <h2 class="admin-title-sm" style="font-size: 28px; margin-bottom: 16px;">💳 Membership Payment Log</h2>
+            
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="admin-table" style="min-width: 1050px;">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Method / Details</th>
+                                <th>Reference</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                                <th>Status</th>
+                                <th>Membership Period</th>
+                                <th>Benefits Claimed</th>
+                                <th>Verified At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in paymentLogs %}
+                                <tr>
+                                    <td>
+                                        <strong class="user-name" style="font-size: 14px;">{{ log.name }}</strong><br>
+                                        <span class="user-email">{{ log.email }}</span>
+                                    </td>
+                                    <td>
+                                        <span style="font-size: 14px;">{{ log.method_icon }} {{ log.method_label }}</span>
+                                        {% if log.details %}
+                                            <br><span class="text-muted">{{ log.details }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="monospace">{{ log.reference }}</td>
+                                    <td class="text-bold">₱{{ log.amount|number_format(2) }}</td>
+                                    <td style="text-transform: capitalize;">{{ log.action }}</td>
+                                    <td>
+                                        <span class="log-status-pill log-status-{{ log.status }}">
+                                            {{ log.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted">
+                                        {% if log.start and log.end %}
+                                            {{ log.start }} &ndash; {{ log.end }}
+                                        {% else %}
+                                            &mdash;
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.status == 'verified' %}
+                                            <div class="benefit-status">
+                                                <span class="{{ log.bike_fit ? 'benefit-claimed' : 'benefit-unused' }}">
+                                                    🚴 Bike Fit: {{ log.bike_fit ? '✅ Claimed' : '⏳ Unused' }}
+                                                </span>
+                                                <span class="{{ log.deep_clean ? 'benefit-claimed' : 'benefit-unused' }}">
+                                                    🧼 Deep Clean: {{ log.deep_clean ? '✅ Claimed' : '⏳ Unused' }}
+                                                </span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted">
+                                        {{ log.verified_at ? log.verified_at : '—' }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <p style="margin-top: 32px;">
+            <a href="{{ path('admin_dashboard') }}" class="text-green text-bold" style="text-decoration: none;">&larr; Back to Dashboard</a>
+        </p>
+
+    </div>
+</div>
+{% endblock %}

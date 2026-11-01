@@ -1,0 +1,299 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="admin-container">
+
+        <!-- HEADER -->
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Dashboard</h1>
+                <p class="admin-subtitle">
+                    Welcome, <strong>Admin User</strong> &bull; <span class="text-green text-bold">HQ Admin</span>
+                </p>
+            </div>
+            <div class="admin-header-actions">
+                <a href="#membership" class="btn btn--outline btn--small btn-header-action">💎 Membership</a>
+                <a href="{{ path('admin_inventory') }}" class="btn btn--green btn--small btn-header-action">➕ Stock Item</a>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p class="stat-label">Monthly Revenue</p>
+                <p class="stat-value stat-value-green">₱ {{ stats.revenue|number_format(2) }}</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Pending Orders</p>
+                <p class="stat-value {% if stats.pending_orders > 0 %}stat-value-orange{% endif %}">{{ stats.pending_orders }}</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Pending Bookings</p>
+                <p class="stat-value {% if stats.pending_bookings > 0 %}stat-value-blue{% endif %}">{{ stats.pending_bookings }}</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Pending Refunds</p>
+                <p class="stat-value {% if stats.pending_refunds > 0 %}stat-value-red{% endif %}">
+                    {{ stats.pending_refunds }}
+                    {% if stats.pending_refunds > 0 %}
+                        <a href="#refund-panel" class="text-green text-bold text-sm" style="margin-left: 8px; text-decoration: none;">Review →</a>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">💎 Claims (This Month)</p>
+                <p class="stat-value {% if stats.claims_mtd > 0 %}stat-value-darkgreen{% endif %}">
+                    {{ stats.claims_mtd }}
+                    {% if stats.claims_mtd > 0 %}
+                        <a href="#claims-log" class="text-green text-bold text-sm" style="margin-left: 8px; text-decoration: none;">View →</a>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Stock</p>
+                <p class="stat-value">{{ stats.stock }}</p>
+            </div>
+        </div>
+
+        <!-- QUICK LINKS -->
+        <div class="quick-links-card">
+            <p class="quick-links-title">Quick Actions</p>
+            <div class="quick-links-grid">
+                {% for link in links %}
+                    <a href="{% if link.route %}{{ path(link.route) }}{% else %}{{ link.anchor }}{% endif %}" class="quick-link-item">
+                        <span class="quick-link-icon">{{ link.icon }}</span>
+                        <div>
+                            <div class="quick-link-title">{{ link.title }}</div>
+                            <div class="quick-link-desc">{{ link.desc }}</div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- REFUND PANEL -->
+        <div id="refund-panel" class="dash-panel">
+            <div class="dash-panel-header">
+                <div class="dash-panel-title">
+                    <span>💸</span>
+                    <div>
+                        Refund Requests
+                        {% if stats.pending_refunds > 0 %}
+                            <span class="status-badge inactive" style="font-size: 12px; padding: 3px 10px; margin-left: 8px;">{{ stats.pending_refunds }} pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{{ path('admin_orders') }}" class="btn btn--outline btn--small btn-header-action">Order Manager →</a>
+            </div>
+
+            <div style="padding: 12px 20px; background: var(--light); border-bottom: 1px solid var(--gray);">
+                <form method="GET" action="#refund-panel" class="filter-form">
+                    <select name="rf_branch" class="filter-input" style="min-width: auto; flex: none;">
+                        <option value="0">All Branches</option>
+                        <option value="1">Dumaguete Main</option>
+                    </select>
+                    <select name="rf_payment" class="filter-input" style="min-width: auto; flex: none;">
+                        <option value="">All Payment Methods</option>
+                        <option value="gcash">GCash</option>
+                    </select>
+                    <button type="submit" class="btn btn--green btn--small btn-action">Filter</button>
+                    <a href="{{ path('admin_dashboard') }}#refund-panel" class="btn btn--outline btn--small btn-action">Clear</a>
+                </form>
+            </div>
+
+            {% if refunds is empty %}
+                <div class="dash-empty-state">✅ No pending refunds.</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Refund #</th>
+                                <th>Customer</th>
+                                <th>Branch</th>
+                                <th>Order</th>
+                                <th>Amount</th>
+                                <th>Payment</th>
+                                <th>Reason</th>
+                                <th class="th-actions">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for refund in refunds %}
+                                <tr>
+                                    <td class="text-bold">#{{ refund.id }}</td>
+                                    <td>
+                                        <strong class="text-sm">{{ refund.customer_name }}</strong><br>
+                                        <span class="text-muted">{{ refund.customer_email }}</span>
+                                    </td>
+                                    <td>{{ refund.branch_name }}</td>
+                                    <td><a href="#" class="text-green text-bold" style="text-decoration: none;">#{{ refund.order_id }}</a></td>
+                                    <td class="text-bold">₱ {{ refund.amount|number_format(2) }}</td>
+                                    <td><span class="pill-gray">{{ refund.payment_method }}</span></td>
+                                    <td class="text-muted" style="max-width: 220px;">{{ refund.reason }}</td>
+                                    <td>
+                                        <form method="POST" action="#" style="display: flex; flex-direction: column; gap: 6px;">
+                                            <textarea name="admin_note" placeholder="Optional note…" class="form-textarea" style="height: 40px; padding: 6px; font-size: 12px;"></textarea>
+                                            <div class="inline-form">
+                                                <button type="submit" class="btn btn--green btn--small btn-action" style="flex: 1;">✓ Approve</button>
+                                                <button type="submit" class="btn btn--small btn-action" style="flex: 1; background: #ffebee; color: #c62828; border: 1px solid #ef9a9a;">✕ Reject</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- CLAIMS PANEL -->
+        <div id="claims-log" class="dash-panel" style="scroll-margin-top: 100px;">
+            <div class="dash-panel-header">
+                <div class="dash-panel-title">
+                    <span>🎫</span>
+                    <div>
+                        Recent Membership Claims
+                        {% if stats.claims_mtd > 0 %}
+                            <span class="status-badge active" style="font-size: 12px; padding: 3px 10px; margin-left: 8px;">{{ stats.claims_mtd }} this month</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{{ path('admin_bookings') }}" class="btn btn--outline btn--small btn-header-action">Manage Bookings →</a>
+            </div>
+
+            <div style="padding: 12px 20px; background: var(--light); border-bottom: 1px solid var(--gray);">
+                <form method="GET" action="#claims-log" class="filter-form">
+                    <select name="cl_branch" class="filter-input" style="min-width: auto; flex: none;">
+                        <option value="0">All Branches</option>
+                        <option value="1">Dumaguete Main</option>
+                    </select>
+                    <select name="cl_benefit" class="filter-input" style="min-width: auto; flex: none;">
+                        <option value="">All Benefit Types</option>
+                        <option value="discount_10">10% Discount</option>
+                    </select>
+                    <button type="submit" class="btn btn--green btn--small btn-action">Filter</button>
+                    <a href="{{ path('admin_dashboard') }}#claims-log" class="btn btn--outline btn--small btn-action">Clear</a>
+                </form>
+            </div>
+
+            {% if claims is empty %}
+                <div class="dash-empty-state">
+                    <p class="text-sm text-bold" style="margin-bottom: 4px;">No membership claims yet.</p>
+                    <p class="text-muted">Claims will appear here when staff record a benefit at checkout or during a booking.</p>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Member</th>
+                                <th>Benefit</th>
+                                <th>Branch</th>
+                                <th>Applied To</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in claims %}
+                                <tr>
+                                    <td class="whitespace-nowrap">
+                                        <span class="text-sm">{{ claim.date }}</span><br>
+                                        <span class="text-muted">{{ claim.time }}</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-sm">{{ claim.member_name }}</strong><br>
+                                        <span class="text-muted">{{ claim.member_email }}</span>
+                                    </td>
+                                    <td><span class="pill-member">💎 {{ claim.benefit }}</span></td>
+                                    <td><span class="pill-gray">📍 {{ claim.branch_name }}</span></td>
+                                    <td class="text-green text-bold text-sm">{{ claim.applied_to }}</td>
+                                    <td class="text-muted">{{ claim.notes }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- MEMBERSHIP PANEL -->
+        <div id="membership" class="dash-panel">
+            <div class="dash-panel-header">
+                <div class="dash-panel-title">💎 Membership Pricing</div>
+                <span class="text-muted" style="font-size: 13px;">
+                    Current: <strong>₱ {{ membership.price|number_format(2) }}</strong> / {{ membership.duration }} mo &bull; {{ membership.active_members }} active members
+                </span>
+            </div>
+            <form method="POST" action="#membership" class="membership-form">
+                <div>
+                    <label class="form-label">Price (₱)</label>
+                    <input type="number" step="0.01" min="1" name="membership_price" value="{{ membership.price }}" class="membership-input">
+                </div>
+                <div>
+                    <label class="form-label">Duration (months)</label>
+                    <input type="number" min="1" max="60" name="membership_duration_months" value="{{ membership.duration }}" class="membership-input">
+                </div>
+                <button type="submit" class="btn btn--green" style="height: 42px; padding: 0 24px;">Save</button>
+            </form>
+        </div>
+
+        <!-- ACTIVITY PANEL -->
+        <div id="activity" class="dash-panel">
+            <div class="dash-panel-header">
+                <div class="dash-panel-title">📋 Inventory Activity</div>
+                <form method="GET" action="#activity" class="filter-form">
+                    <select name="filter_action" class="filter-input" style="min-width: auto; flex: none;">
+                        <option value="">All Actions</option>
+                        <option value="add">Stock Added</option>
+                        <option value="update_status">Inventory Status Changed</option>
+                    </select>
+                    <button type="submit" class="btn btn--green btn--small btn-action">Filter</button>
+                    <a href="{{ path('admin_dashboard') }}#activity" class="btn btn--outline btn--small btn-action">Clear</a>
+                </form>
+            </div>
+
+            {% if activities is empty %}
+                <p class="dash-empty-state">No activity found.</p>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Branch</th>
+                                <th>Product</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in activities %}
+                                <tr>
+                                    <td class="text-sm">{{ log.date }}</td>
+                                    <td class="text-sm">{{ log.user }}</td>
+                                    <td class="text-sm">{{ log.branch }}</td>
+                                    <td class="text-sm">{{ log.product }}</td>
+                                    <td class="text-sm">{{ log.action }}</td>
+                                    <td class="text-sm">{{ log.details }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <p class="mt-40">
+            <a href="#" class="text-green text-bold" style="text-decoration: none;">← Back to Home</a>
+        </p>
+
+    </div>
+</div>
+{% endblock %}

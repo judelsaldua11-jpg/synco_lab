@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add New Location{% endblock %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="admin-container-sm">
+        
+        <h1 class="admin-title-sm">Add New Location</h1>
+        <p class="admin-subtitle-lg">Create a new SYNCRO LAB branch location.</p>
+
+        <form method="POST" action="#" class="admin-form-card">
+            
+            <div class="form-grid">
+                
+                <!-- Name -->
+                <div class="form-group">
+                    <label for="name" class="form-label">Location Name *</label>
+                    <input type="text" id="name" name="name" required class="form-input">
+                </div>
+
+                <!-- Address -->
+                <div class="form-group">
+                    <label for="address" class="form-label">Address *</label>
+                    <textarea id="address" name="address" rows="3" required class="form-textarea"></textarea>
+                </div>
+
+                <!-- Google Maps URL -->
+                <div class="form-group">
+                    <label for="maps_url" class="form-label">Google Maps URL</label>
+                    <input type="url" id="maps_url" name="maps_url" placeholder="https://www.google.com/maps/search/?api=1&query=..." class="form-input">
+                    <p class="form-help">Paste the Google Maps link for this location. Used for "SHOW DIRECTIONS" button.</p>
+                </div>
+
+                <!-- Phone & Email (2-Col Grid) -->
+                <div class="form-grid-2col">
+                    <div class="form-group">
+                        <label for="contact_phone" class="form-label">Contact Phone</label>
+                        <input type="text" id="contact_phone" name="contact_phone" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact_email" class="form-label">Contact Email</label>
+                        <input type="email" id="contact_email" name="contact_email" class="form-input">
+                    </div>
+                </div>
+
+                <!-- Active Toggle -->
+                <div class="form-group mt-10">
+                    <label class="form-checkbox-wrap">
+                        <input type="checkbox" name="is_active" value="1" checked>
+                        Active (visible to customers)
+                    </label>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--green btn-form-submit">
+                        ADD LOCATION
+                    </button>
+                    <a href="{{ path('admin_locations') }}" class="btn btn--outline btn-form-submit">
+                        CANCEL
+                    </a>
+                </div>
+                
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

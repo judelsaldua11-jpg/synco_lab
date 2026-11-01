@@ -1,0 +1,133 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Product{% endblock %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="admin-container-sm">
+        
+        <h1 class="admin-title-sm">
+            Edit Product
+        </h1>
+        <p class="admin-subtitle-lg">
+            Update product details for {{ product.name }}
+        </p>
+
+        <form method="POST" action="#" enctype="multipart/form-data" class="admin-form-card">
+            
+            <div class="form-grid">
+                
+                <!-- Basic Fields -->
+                <div class="form-group">
+                    <label for="name" class="form-label">Product Name *</label>
+                    <input type="text" id="name" name="name" required value="{{ product.name }}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="sku" class="form-label">SKU *</label>
+                    <input type="text" id="sku" name="sku" required value="{{ product.sku }}" class="form-input">
+                    <p class="form-help">Unique product identifier</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="brand" class="form-label">Brand</label>
+                    <input type="text" id="brand" name="brand" value="{{ product.brand }}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="price" class="form-label">Price *</label>
+                    <input type="number" id="price" name="price" step="0.01" min="0.01" required value="{{ product.price }}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea id="description" name="description" rows="4" class="form-textarea">{{ product.description }}</textarea>
+                </div>
+
+                <!-- CATEGORY PICKER (Pre-checked) -->
+                <div class="category-picker" id="category-picker">
+                    <label class="cat-picker-label">Categories</label>
+                    
+                    <div class="cat-picker-row">
+                        <input type="search" id="cat-search" placeholder="Search categories..." autocomplete="off" class="cat-picker-search">
+                        <input type="text" id="cat-new-input" placeholder="New category" autocomplete="off" class="cat-picker-new-input">
+                        <button type="button" id="cat-add-btn" class="btn btn--outline cat-picker-add-btn">ADD</button>
+                    </div>
+                    
+                    <div class="cat-picker-chips" id="cat-selected"></div>
+                    <div id="cat-new-values"></div>
+                    
+                    <div class="cat-picker-options" id="cat-options">
+                        {% for category in categories %}
+                            <label class="cat-picker-option" data-category-name="{{ category.name|lower }}">
+                                <!-- Check the box if the category ID is in the product's category_ids array -->
+                                <input type="checkbox" name="categories[]" value="{{ category.id }}" 
+                                       {% if category.id in product.category_ids %}checked{% endif %}>
+                                <span>{{ category.name }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group mt-10">
+                    <label class="form-checkbox-wrap">
+                        <input type="checkbox" name="is_featured" value="1" {% if product.is_featured %}checked{% endif %}>
+                        Show on homepage (Featured Hardware)
+                    </label>
+                </div>
+
+                <!-- IMAGE MANAGEMENT SECTION -->
+                <div class="image-section-border">
+                    <h3 class="image-section-title">Product Images</h3>
+
+                    {% if productImages is not empty %}
+                        <div class="image-grid">
+                            {% for img in productImages %}
+                                <div class="image-card">
+                                    <img src="{{ asset(img.file_path) }}" alt="Product image" class="image-preview">
+                                    <div class="image-actions">
+                                        <label class="image-action-label">
+                                            <input type="radio" name="primary_image" value="{{ img.id }}" {% if img.is_primary %}checked{% endif %}>
+                                            Primary
+                                        </label>
+                                        <label class="image-action-label text-danger">
+                                            <input type="checkbox" name="delete_images[]" value="{{ img.id }}">
+                                            Delete
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted" style="margin-bottom: 16px;">No images uploaded yet.</p>
+                    {% endif %}
+
+                    <!-- Upload New Images -->
+                    <div class="form-group">
+                        <label for="new_images" class="form-label">Add New Images</label>
+                        <input type="file" id="new_images" name="new_images[]" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="form-file">
+                        <p class="form-help">Supported: JPG, PNG, WebP, GIF (max 5MB each). You can select multiple.</p>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--green btn-form-submit">
+                        UPDATE PRODUCT
+                    </button>
+                    <a href="{{ path('admin_products') }}" class="btn btn--outline btn-form-submit">
+                        CANCEL
+                    </a>
+                </div>
+                
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    <!-- Reuse the same JS file from the Add page -->
+    <script src="{{ asset('category-picker.js') }}"></script>
+{% endblock %}

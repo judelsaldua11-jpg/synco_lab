@@ -1,0 +1,170 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order Management{% endblock %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="admin-container">
+
+        <!-- Header -->
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Order Management</h1>
+                <p class="admin-subtitle">
+                    All branches &bull; {{ statusCounts.all }} total orders
+                </p>
+            </div>
+            <div class="admin-header-actions">
+                <a href="{{ path('admin_dashboard') }}" class="btn btn--outline btn--small btn-header-action">← Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="filter-card">
+            <div class="filter-tabs">
+                <a href="#" class="filter-tab active">All <span class="filter-tab-count">({{ statusCounts.all }})</span></a>
+                <a href="#" class="filter-tab">Pending <span class="filter-tab-count">({{ statusCounts.pending }})</span></a>
+                <a href="#" class="filter-tab">Confirmed <span class="filter-tab-count">({{ statusCounts.confirmed }})</span></a>
+                <a href="#" class="filter-tab">Shipped <span class="filter-tab-count">({{ statusCounts.shipped }})</span></a>
+                <a href="#" class="filter-tab">Delivered <span class="filter-tab-count">({{ statusCounts.delivered }})</span></a>
+                <a href="#" class="filter-tab">Cancelled <span class="filter-tab-count">({{ statusCounts.cancelled }})</span></a>
+                <a href="#" class="filter-tab">Returned <span class="filter-tab-count">({{ statusCounts.returned }})</span></a>
+            </div>
+
+            <form method="GET" action="" class="filter-form">
+                <input type="text" name="search" placeholder="Search order #, customer name or email…" class="filter-input">
+                
+                <select name="branch" class="filter-select">
+                    <option value="0">All Branches</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch.id }}">{{ branch.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn btn--green btn--small btn-search">Search</button>
+                <a href="{{ path('admin_orders') }}" class="btn btn--outline btn--small btn-clear">Clear</a>
+            </form>
+        </div>
+
+        <!-- Table Card -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Branch</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Discount</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Refund</th>
+                            <th class="th-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                            <tr id="order-{{ order.id }}">
+                                
+                                <td class="text-bold text-heading whitespace-nowrap">
+                                    #{{ order.order_num }}
+                                </td>
+
+                                <td class="whitespace-nowrap">
+                                    <span class="text-sm">{{ order.date }}</span><br>
+                                    <span class="text-muted">{{ order.time }}</span>
+                                </td>
+
+                                <td>
+                                    <div class="flex-items-center">
+                                        <strong class="text-sm">{{ order.customer_name }}</strong>
+                                        {% if order.is_member %}
+                                            <span class="pill-member" title="Active member">💎 Member</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="text-muted">{{ order.customer_email }}</span>
+                                </td>
+
+                                <td>
+                                    <span class="pill-gray">📍 {{ order.branch_name }}</span>
+                                </td>
+
+                                <td>{{ order.item_count }}</td>
+
+                                <td class="text-bold whitespace-nowrap">
+                                    ₱ {{ order.total_amount | number_format(2) }}
+                                </td>
+
+                                <td>
+                                    {% if order.has_discount %}
+                                        <span class="text-sm text-bold text-green whitespace-nowrap">
+                                            − ₱{{ order.discount_amount | number_format(2) }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <span class="pill-gray">{{ order.payment_label }}</span>
+                                </td>
+
+                                <!-- Notice: Dynamic CSS class instead of inline style -->
+                                <td>
+                                    <span class="status-pill status-{{ order.status_key }}">
+                                        {{ order.status_label }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {% if order.pending_refunds > 0 %}
+                                        <a href="{{ path('admin_dashboard') }}#refund-panel" class="badge-refund" title="Review in dashboard">
+                                            💸 {{ order.pending_refunds }} pending
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <div class="flex-items-center flex-gap-6">
+                                        <a href="#" class="btn btn--small btn--outline btn-action">View</a>
+
+                                        {% if not order.is_final %}
+                                            <form method="POST" action="#" class="inline-form">
+                                                <select name="new_status" class="small-select">
+                                                    <option value="pending" {% if order.status_key == 'pending' %}selected{% endif %}>Pending</option>
+                                                    <option value="confirmed" {% if order.status_key == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                                    <option value="shipped" {% if order.status_key == 'shipped' %}selected{% endif %}>Shipped</option>
+                                                    <option value="delivered" {% if order.status_key == 'delivered' %}selected{% endif %}>Delivered</option>
+                                                    <option value="cancelled" {% if order.status_key == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                                    <option value="returned" {% if order.status_key == 'returned' %}selected{% endif %}>Returned</option>
+                                                </select>
+                                                <button type="submit" class="btn btn--small btn--green btn-action" onclick="return confirm('Update status for order #{{ order.order_num }}?');">Update</button>
+                                            </form>
+                                        {% endif %}
+
+                                        {% if order.has_discount %}
+                                            <span class="badge-discount" title="10% member discount auto-applied at checkout">
+                                                💎 10% Auto-Applied
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <p style="margin-top:32px;">
+            <a href="#" class="text-green text-bold" style="text-decoration: none;">← Back to Home</a>
+        </p>
+
+    </div>
+</div>
+{% endblock %}

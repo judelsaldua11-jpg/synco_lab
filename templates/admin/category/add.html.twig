@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add New Category{% endblock %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="admin-container-sm">
+        
+        <h1 class="admin-title-sm">
+            Add New Category
+        </h1>
+        <p class="admin-subtitle-lg">
+            Create a new product category or subcategory.
+        </p>
+
+        <form method="POST" action="#" class="admin-form-card">
+            
+            <div class="form-grid">
+                
+                <!-- Name -->
+                <div class="form-group">
+                    <label for="name" class="form-label">Category Name *</label>
+                    <input type="text" id="name" name="name" required class="form-input">
+                    <p class="form-help">This will be displayed to customers (e.g., "Bikes", "Components").</p>
+                </div>
+
+                <!-- Slug -->
+                <div class="form-group">
+                    <label for="slug" class="form-label">Slug (URL-friendly name)</label>
+                    <input type="text" id="slug" name="slug" placeholder="e.g., bikes, road-bikes, shimano-groupsets" class="form-input">
+                    <p class="form-help">Used in URLs (e.g., shop.php?category=slug). Leave blank to auto-generate from name.</p>
+                </div>
+
+                <!-- Parent Category -->
+                <div class="form-group">
+                    <label for="parent_id" class="form-label">Parent Category (Optional)</label>
+                    <select id="parent_id" name="parent_id" class="form-select">
+                        <option value="0">None (Top-level category)</option>
+                        {% for parent in parentCategories %}
+                            <option value="{{ parent.id }}">{{ parent.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="form-help">Select a parent category to create a subcategory.</p>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="description" class="form-label">Description (Optional)</label>
+                    <textarea id="description" name="description" rows="3" class="form-textarea"></textarea>
+                </div>
+
+                <!-- Active Toggle (Defaults to checked) -->
+                <div class="form-group mt-15">
+                    <label class="form-checkbox-wrap">
+                        <input type="checkbox" name="is_active" value="1" checked>
+                        Active (visible to customers)
+                    </label>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--green btn-form-submit">
+                        ADD CATEGORY
+                    </button>
+                    <a href="{{ path('admin_categories') }}" class="btn btn--outline btn-form-submit">
+                        CANCEL
+                    </a>
+                </div>
+                
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
